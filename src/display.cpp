@@ -18,9 +18,11 @@ void Display::clear()
 {
   gfx.clearDisplay();
 }
-void Storage::print(String text, uint8_t x = 1, uint8_t y = 1)
+void Storage::print(String text, uint16_t x = 1, uint16_t y = 1, uint8_t s = 3, bool w = false)
 {
   gfx.setCursor(x, y);
+  gtx.setTextSize(s);
+  gtx.setTextWrap(w);
   gfx.print(text);
   gfx.display();
 }
