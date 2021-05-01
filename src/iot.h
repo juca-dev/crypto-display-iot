@@ -9,8 +9,6 @@
 #include <time.h>
 #include "storage.h"
 
-WiFiClientSecure net;
-
 class IoT
 {
 private:
@@ -24,15 +22,16 @@ private:
   String cert;
   String certClient;
   String certKey;
-  PubSubClient client(net);
   unsigned long lastMillis = 0;
   time_t now;
   time_t nowish = 1510592825;
   bool ledOn = false;
+  PubSubClient client;
 
 public:
   IoT(byte pin);
   StaticJsonDocument<256> config();
+  bool load(StaticJsonDocument<256> json);
   void ntpConnect();
   void messageReceived(char *topic, byte *payload, unsigned int length);
   void pubSubErr(int8_t MQTTErr);
@@ -41,3 +40,5 @@ public:
   void setup();
   void loop();
 };
+
+#endif

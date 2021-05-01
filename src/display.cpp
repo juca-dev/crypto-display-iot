@@ -10,7 +10,7 @@ void Display::setup()
     for (;;)
       yield();
   }
-  
+
   gfx.clearDisplay();
   gfx.setTextColor(WHITE);
 }
@@ -18,11 +18,11 @@ void Display::clear()
 {
   gfx.clearDisplay();
 }
-void Storage::print(String text, uint16_t x = 1, uint16_t y = 1, uint8_t s = 3, bool w = false)
+void Display::print(String text, uint16_t x, uint16_t y, uint8_t s, bool w)
 {
   gfx.setCursor(x, y);
-  gtx.setTextSize(s);
-  gtx.setTextWrap(w);
+  gfx.setTextSize(s);
+  gfx.setTextWrap(w);
   gfx.print(text);
   gfx.display();
 }
