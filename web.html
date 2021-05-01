@@ -1,4 +1,3 @@
-const char WEB_HTML[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html lang="en">
 
@@ -63,8 +62,8 @@ const char WEB_HTML[] PROGMEM = R"=====(
             margin-bottom: 0;
         }
 
-        fieldset>div>input
-        , fieldset>div>textarea {
+        fieldset>div>input,
+        fieldset>div>textarea {
             position: absolute;
             top: 0;
             left: 0;
@@ -77,6 +76,7 @@ const char WEB_HTML[] PROGMEM = R"=====(
             color: #000;
             font-weight: 300;
         }
+
         fieldset>div>textarea {
             height: 100%;
         }
@@ -94,10 +94,10 @@ const char WEB_HTML[] PROGMEM = R"=====(
             pointer-events: none;
         }
 
-        fieldset>div>input:focus~label
-        , fieldset>div>input:valid~label
-        , fieldset>div>textarea:focus~label
-        , fieldset>div>textarea:valid~label {
+        fieldset>div>input:focus~label,
+        fieldset>div>input:valid~label,
+        fieldset>div>textarea:focus~label,
+        fieldset>div>textarea:valid~label {
             transform: translateX(-1em) translateY(-2.25em);
             font-size: small;
         }
@@ -470,4 +470,3 @@ const char WEB_HTML[] PROGMEM = R"=====(
 </script>
 
 </html>
-)=====";

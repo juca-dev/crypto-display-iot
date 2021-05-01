@@ -39,6 +39,8 @@ public:
     void conIotPut();
     void conWifi();
     void conWifiPut();
+    void conDisplay();
+    void conDisplayPut();
     void conReset();
 };
 

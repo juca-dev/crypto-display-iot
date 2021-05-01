@@ -3,6 +3,9 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <ArduinoJson.h>
+
+#include "storage.h"
 
 class Display
 {
@@ -12,11 +15,15 @@ private:
   uint8_t s = 1;
   bool w = true;
   String cache;
+  Storage storage;
 public:
   void setup();
   void show();
   void clear();
   void text(String value);
+  StaticJsonDocument<256> config();
+  bool load(StaticJsonDocument<256> json);
+  void save();
 };
 
 #endif

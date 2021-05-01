@@ -14,12 +14,12 @@ class IoT
 private:
   byte ledPin;
   Storage storage;
-  int port = 8883;
+  uint16_t port = 8883;
   String id;
   String host;
   String topicSub;
   String topicPub;
-  String cert;
+  String certCA;
   String certClient;
   String certKey;
   unsigned long lastMillis = 0;
@@ -32,6 +32,7 @@ public:
   IoT(byte pin);
   StaticJsonDocument<256> config();
   bool load(StaticJsonDocument<256> json);
+  void save();
   void ntpConnect();
   void messageReceived(char *topic, byte *payload, unsigned int length);
   void pubSubErr(int8_t MQTTErr);

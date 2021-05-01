@@ -73,6 +73,8 @@ void Api::setup()
     this->server.on("/api", HTTP_GET, std::bind(&Api::conConfig, this));
     this->server.on("/iot", HTTP_POST, std::bind(&Api::conIotPut, this));
     this->server.on("/iot", HTTP_GET, std::bind(&Api::conIot, this));
+    this->server.on("/display", HTTP_POST, std::bind(&Api::conDisplayPut, this));
+    this->server.on("/display", HTTP_GET, std::bind(&Api::conDisplay, this));
 
     this->server.begin();
     
@@ -129,31 +131,22 @@ void Api::conConfigPut()
 void Api::conConfig()
 {
     StaticJsonDocument<256> json = this->config();
+
     String value;
     serializeJson(json, value);
 
-    this->server.send(200, "application/json", value.c_str());
+    this->server.send(json.isNull() ? 404 : 200, "application/json", value.c_str());
 }
 void Api::conIotPut()
 {
-    if (this->powerBkp)
-    {
-        this->server.send(405, "application/json", ERR_405);
-        return;
-    }
     StaticJsonDocument<256> json = this->getJson();
-    if (!this->iot.load(json))
-    {
-        this->server.send(400, "application/json", ERR_400);
-        return;
-    }
     String value;
     serializeJson(json, value);
 
-    json = this->config();
-    this->load(json);
+    server.send(204, "");
 
-    this->server.send(204, "");
+    this->iot.load(json);
+    this->iot.save();
 }
 void Api::conIot()
 {
@@ -162,7 +155,7 @@ void Api::conIot()
     String value;
     serializeJson(json, value);
 
-    this->server.send(200, "application/json", value.c_str());
+    this->server.send(json.isNull() ? 404 : 200, "application/json", value.c_str());
 }
 void Api::conWifiPut()
 {
@@ -181,7 +174,27 @@ void Api::conWifi()
     String value;
     serializeJson(json, value);
 
-    this->server.send(200, "application/json", value.c_str());
+    this->server.send(json.isNull() ? 404 : 200, "application/json", value.c_str());
+}
+void Api::conDisplayPut()
+{
+    StaticJsonDocument<256> json = this->getJson();
+    String value;
+    serializeJson(json, value);
+
+    server.send(204, "");
+
+    this->display.load(json);
+    this->display.save();
+}
+void Api::conDisplay()
+{
+    StaticJsonDocument<256> json = this->display.config();
+
+    String value;
+    serializeJson(json, value);
+
+    this->server.send(json.isNull() ? 404 : 200, "application/json", value.c_str());
 }
 void Api::conReset()
 {

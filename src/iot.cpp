@@ -6,15 +6,6 @@ IoT::IoT(byte pin)
 {
     this->ledPin = pin;
     this->client.setClient(net);
-    StaticJsonDocument<256> config = this->config();
-    this->port = config["port"].as<int>();
-    this->id = config["id"].as<String>();
-    this->host = config["host"].as<String>();
-    this->topicPub = config["topicPub"].as<String>();
-    this->topicSub = config["topicSub"].as<String>();
-    this->cert = config["cert"].as<String>();
-    this->certClient = config["certClient"].as<String>();
-    this->certKey = config["certKey"].as<String>();
     Serial.println("IoT: ready");
 }
 
@@ -32,21 +23,43 @@ StaticJsonDocument<256> IoT::config()
 }
 bool IoT::load(StaticJsonDocument<256> json)
 {
-    if (json.isNull() || !json.containsKey("id") || !json.containsKey("port") || !json.containsKey("host"))
+    if (json.isNull() 
+        || !json.containsKey("id") 
+        || !json.containsKey("port") 
+        || !json.containsKey("host") 
+        || !json.containsKey("certCA") 
+        || !json.containsKey("certClient") 
+        || !json.containsKey("certKey") 
+    )
     {
         Serial.println("iot: No config");
         return false;
     }
 
-    this->port = json["port"].as<int>();
     this->id = json["id"].as<String>();
+    this->port = json["port"].as<uint16_t>();
     this->host = json["host"].as<String>();
-    this->topicPub = json["topicPub"].as<String>();
-    this->topicSub = json["topicSub"].as<String>();
-    this->cert = json["cert"].as<String>();
+    this->certCA = json["certCA"].as<String>();
     this->certClient = json["certClient"].as<String>();
     this->certKey = json["certKey"].as<String>();
+    this->topicPub = json["pub"].as<String>();
+    this->topicSub = json["sub"].as<String>();
     return true;
+}
+void IoT::save()
+{
+    StaticJsonDocument<256> json;
+    json["id"] = this->id;
+    json["port"] = this->port;
+    json["host"] = this->host;
+    json["certCA"] = this->certCA;
+    json["certClient"] = this->certClient;
+    json["certKey"] = this->certKey;
+    json["pub"] = this->topicPub;
+    json["sub"] = this->topicSub;
+    String value;
+    serializeJson(json, value);
+    this->storage.put("iot.json", value);
 }
 void IoT::ntpConnect()
 {
@@ -165,27 +178,30 @@ void IoT::setup()
     this->storage.setup();
 
     StaticJsonDocument<256> config = this->config();
-    if (this->load(config))
+    if (!this->load(config))
     {
-        this->ntpConnect();
-
-        BearSSL::X509List cert(this->cert.c_str());
-        BearSSL::X509List certClient(this->certClient.c_str());
-        BearSSL::PrivateKey certKey(this->certKey.c_str());
-
-        net.setTrustAnchors(&cert);
-        net.setClientRSACert(&certClient, &certKey);
-
-        this->client.setServer(this->host.c_str(), this->port);
-
-        auto cb = [&](char *topic, byte *payload, unsigned int length) {
-            this->messageReceived(topic, payload, length);
-        };
-        //    this->client.setCallback(this->messageReceived);
-        this->client.setCallback(cb);
-
-        this->connectToMqtt();
+      Serial.println("IoT: Not configured!");
+      return;
     }
+    
+    this->ntpConnect();
+
+    BearSSL::X509List cert(this->certCA.c_str());
+    BearSSL::X509List certClient(this->certClient.c_str());
+    BearSSL::PrivateKey certKey(this->certKey.c_str());
+
+    net.setTrustAnchors(&cert);
+    net.setClientRSACert(&certClient, &certKey);
+
+    this->client.setServer(this->host.c_str(), this->port);
+
+    auto cb = [&](char *topic, byte *payload, unsigned int length) {
+        this->messageReceived(topic, payload, length);
+    };
+    //    this->client.setCallback(this->messageReceived);
+    this->client.setCallback(cb);
+
+    this->connectToMqtt();
 }
 void IoT::loop()
 {
