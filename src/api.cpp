@@ -44,11 +44,13 @@ void Api::setup()
     delay(250);
     this->powerBkp = digitalRead(this->powerPin);
 
-    this->wifi.setup();
-
+    this->display.setup();
+    this->display.print("API: Storage loading");
     this->storage.setup();
-
-    this->iot.setup();
+    this->display.print("API: Wifi loading");
+    this->wifi.setup();
+    this->display.print("API: IoT loading");
+    // this->iot.setup();
 
     this->configBkp = this->config();
     this->load(this->configBkp);
@@ -64,6 +66,8 @@ void Api::setup()
     this->server.on("/iot", HTTP_GET, std::bind(&Api::conIot, this));
 
     this->server.begin();
+    
+    this->display.print("API: ready");
 }
 void Api::loop()
 {

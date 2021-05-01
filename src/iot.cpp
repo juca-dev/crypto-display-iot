@@ -162,6 +162,8 @@ void IoT::sendData()
 }
 void IoT::setup()
 {
+    this->storage.setup();
+    
     this->ntpConnect();
 
     BearSSL::X509List cert(this->cert.c_str());

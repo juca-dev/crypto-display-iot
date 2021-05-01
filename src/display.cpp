@@ -20,6 +20,7 @@ void Display::clear()
 }
 void Display::print(String text, uint16_t x, uint16_t y, uint8_t s, bool w)
 {
+  gfx.clearDisplay();
   gfx.setCursor(x, y);
   gfx.setTextSize(s);
   gfx.setTextWrap(w);

@@ -6,15 +6,24 @@ void Storage::setup()
   {
     Serial.println("### ERR: Storage - SPIFFS not configured!");
   }
-  Serial.println("### Storage - SPIFFS: total %u | used %u | free %u", SPIFFS.totalBytes(), SPIFFS.usedBytes(), (SPIFFS.totalBytes() - SPIFFS.usedBytes()));
+  else
+  {
+    Serial.println("### Storage - SPIFFS OK");
+  }
+  //Serial.println("### Storage - SPIFFS: total %u | used %u | free %u", SPIFFS.totalBytes(), SPIFFS.usedBytes(), (SPIFFS.totalBytes() - SPIFFS.usedBytes()));
 }
 void Storage::list()
 {
-  File dir = SPIFFS.open("/");
+  File dir = SPIFFS.open("/", "r");
   File file = dir.openNextFile();
   while (file)
   {
-    Serial.println("### Storage - File: %s (%u)", file.name(), file.size());
+      // Serial.println("### Storage - File: %s (%u)", file.name(), file.size());
+      Serial.print("### Storage - File ");
+      Serial.print(file.name());
+      Serial.print(" | Size ");
+      Serial.println(file.size());
+
     file = dir.openNextFile();
   }
 

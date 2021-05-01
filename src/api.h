@@ -8,6 +8,7 @@
 #include "web.h"
 #include "iot.h"
 #include "wifi.h"
+#include "display.h"
 
 class Api
 {
@@ -20,6 +21,7 @@ private:
     StaticJsonDocument<256> configBkp;
     IoT iot = IoT(LED_BUILTIN);
     WifiService wifi = WifiService(LED_BUILTIN);
+    Display display;
 
     StaticJsonDocument<256> getJson();
     StaticJsonDocument<256> config();
