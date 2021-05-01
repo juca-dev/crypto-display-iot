@@ -233,9 +233,9 @@ const char WEB_HTML[] PROGMEM = R"=====(
           </div>
         </fieldset>
       </form>
-      <form onsubmit="return setDevice(event)">
+      <form onsubmit="return setIot(event)">
         <fieldset>
-          <legend>Device</legend>
+          <legend>Iot</legend>
           <div>
             <input type="number" min="0" max="255" id="device_pin" />
             <label for="device_pin">PIN</label>
@@ -330,7 +330,7 @@ const char WEB_HTML[] PROGMEM = R"=====(
       console.log("rgb updated: ", data);
       return false;
     }
-    function setDevice(ev) {
+    function setIot(ev) {
       if (ev) {
         ev.preventDefault();
       }
@@ -339,7 +339,7 @@ const char WEB_HTML[] PROGMEM = R"=====(
       const leds = +device_leds.value;
       const data = { pin, leds };
 
-      request("POST", "/device", data);
+      request("POST", "/iot", data);
       console.log("device updated: ", data);
       return false;
     }
@@ -361,9 +361,9 @@ const char WEB_HTML[] PROGMEM = R"=====(
       wifi_ssid.value = res.ssid;
       wifi_password.value = res.password;
     }
-    async function getDevice() {
-      const res = await request("GET", "/device");
-      console.log("device: ", res);
+    async function getIot() {
+      const res = await request("GET", "/iot");
+      console.log("iot: ", res);
       if (!res) return;
 
       device_pin.value = res.pin;
@@ -371,8 +371,8 @@ const char WEB_HTML[] PROGMEM = R"=====(
     }
     async function load() {
       await getWifi();
-      await getDevice();
-      await getRGB();
+      await getIot();
+      // await getRGB();
     }
     window.onload = async () => {
       await delay(2000);

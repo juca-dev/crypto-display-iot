@@ -1,9 +1,9 @@
 #include "wifi.h"
 
 const char WIFI_PWD[] = "123123123";
-const char WIFI_SSID[] = "juca.dev";
+const char WIFI_SSID[] = "crypto.juca.dev";
 
-IPAddress WIFI_LOCAL_IP(192, 168, 100, 4);
+IPAddress WIFI_LOCAL_IP(192, 168, 100, 1);
 IPAddress WIFI_GATEWAY(192, 168, 100, 1);
 IPAddress WIFI_NETMASK(255, 255, 255, 0);
 
