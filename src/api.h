@@ -19,8 +19,8 @@ private:
     byte powerPin;
     bool powerBkp;
     StaticJsonDocument<256> configBkp;
-    IoT iot = IoT(LED_BUILTIN);
-    WifiService wifi = WifiService(LED_BUILTIN);
+    IoT iot = IoT(0);
+    WifiService wifi = WifiService(0);
     Display display;
 
     StaticJsonDocument<256> getJson();

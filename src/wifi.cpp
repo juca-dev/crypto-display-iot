@@ -12,6 +12,13 @@ WifiService::WifiService(byte pin)
     this->ledPin = pin;
     Serial.println("Wifi: ready");
 }
+String WifiService::ipToString(IPAddress ip)
+{
+    String res = "";
+    for (int i = 0; i < 4; i++)
+        res += i ? "." + String(ip[i]) : String(ip[i]);
+    return res;
+}
 void WifiService::setup()
 {
     this->storage.setup();
@@ -24,15 +31,22 @@ void WifiService::setup()
     StaticJsonDocument<256> config = this->config();
     if (this->load(config))
     {
+        this->isAP = false;
+        this->ip = this->ipToString(WiFi.localIP());
+
         digitalWrite(this->ledPin, HIGH);
         Serial.println("WIFI: OK");
-        Serial.println(WiFi.localIP());
+        Serial.println(this->ip);
     }
     else
     {
         WiFi.mode(WIFI_AP);
         WiFi.softAPConfig(WIFI_LOCAL_IP, WIFI_GATEWAY, WIFI_NETMASK);
         WiFi.softAP(WIFI_SSID, WIFI_PWD);
+
+        this->isAP = true;
+        this->ip = "192.168.100.1";
+
         digitalWrite(this->ledPin, LOW);
         Serial.println("Connected: NOK");
     }
@@ -80,7 +94,7 @@ bool WifiService::load(StaticJsonDocument<256> json)
         delay(500);
         Serial.print(".");
         digitalWrite(this->ledPin, !digitalRead(this->ledPin));
-        if ((unsigned long)(millis() - startTime) >= 15000) 
+        if ((unsigned long)(millis() - startTime) >= 15000)
         {
             Serial.println("wifi: timed out (15s)");
             return false;

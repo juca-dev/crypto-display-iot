@@ -45,12 +45,21 @@ void Api::setup()
     this->powerBkp = digitalRead(this->powerPin);
 
     this->display.setup();
-    this->display.print("API: Storage loading");
+    this->display.text("Storage: loading");
     this->storage.setup();
-    this->display.print("API: Wifi loading");
+    this->display.text("Wifi: loading");
     this->wifi.setup();
-    this->display.print("API: IoT loading");
-    // this->iot.setup();
+    
+    if(this->wifi.isAP)
+    {
+      this->display.text("Wifi: AP " + this->wifi.ip);
+    }
+    else
+    {
+      this->display.text("Wifi: " + this->wifi.ip);
+      this->display.text("IoT: loading");
+      this->iot.setup();
+    }
 
     this->configBkp = this->config();
     this->load(this->configBkp);
@@ -67,12 +76,11 @@ void Api::setup()
 
     this->server.begin();
     
-    this->display.print("API: ready");
+    this->display.text("API: ready");
 }
 void Api::loop()
 {
     this->server.handleClient();
-    //this->checkPower();
 }
 bool Api::load(StaticJsonDocument<256> json)
 {

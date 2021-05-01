@@ -6,10 +6,17 @@
 
 class Display
 {
+private:
+  uint16_t x = 0;
+  uint16_t y = 0;
+  uint8_t s = 1;
+  bool w = true;
+  String cache;
 public:
   void setup();
+  void show();
   void clear();
-  void print(String text, uint16_t x = 1, uint16_t y = 1, uint8_t s = 2, bool w = false);
+  void text(String value);
 };
 
 #endif

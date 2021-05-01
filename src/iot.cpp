@@ -48,7 +48,7 @@ bool IoT::load(StaticJsonDocument<256> json)
     this->certKey = json["certKey"].as<String>();
     return true;
 }
-void IoT::ntpConnect(void)
+void IoT::ntpConnect()
 {
     Serial.print("Setting time using SNTP");
     int8_t TIME_ZONE = 3; //BRA: 3 UTC
@@ -163,25 +163,29 @@ void IoT::sendData()
 void IoT::setup()
 {
     this->storage.setup();
-    
-    this->ntpConnect();
 
-    BearSSL::X509List cert(this->cert.c_str());
-    BearSSL::X509List certClient(this->certClient.c_str());
-    BearSSL::PrivateKey certKey(this->certKey.c_str());
+    StaticJsonDocument<256> config = this->config();
+    if (this->load(config))
+    {
+        this->ntpConnect();
 
-    net.setTrustAnchors(&cert);
-    net.setClientRSACert(&certClient, &certKey);
+        BearSSL::X509List cert(this->cert.c_str());
+        BearSSL::X509List certClient(this->certClient.c_str());
+        BearSSL::PrivateKey certKey(this->certKey.c_str());
 
-    this->client.setServer(this->host.c_str(), this->port);
+        net.setTrustAnchors(&cert);
+        net.setClientRSACert(&certClient, &certKey);
 
-    auto cb = [&](char *topic, byte *payload, unsigned int length) {
-        this->messageReceived(topic, payload, length);
-    };
-    //    this->client.setCallback(this->messageReceived);
-    this->client.setCallback(cb);
+        this->client.setServer(this->host.c_str(), this->port);
 
-    this->connectToMqtt();
+        auto cb = [&](char *topic, byte *payload, unsigned int length) {
+            this->messageReceived(topic, payload, length);
+        };
+        //    this->client.setCallback(this->messageReceived);
+        this->client.setCallback(cb);
+
+        this->connectToMqtt();
+    }
 }
 void IoT::loop()
 {

@@ -17,13 +17,24 @@ void Display::setup()
 void Display::clear()
 {
   gfx.clearDisplay();
+  this->cache = "";
 }
-void Display::print(String text, uint16_t x, uint16_t y, uint8_t s, bool w)
+void Display::text(String value)
 {
+  this->cache = value + "\n" + this->cache;
+  this->show();
+}
+void Display::show()
+{
+  String res = this->cache; //.substring(0, 20);
+  
   gfx.clearDisplay();
-  gfx.setCursor(x, y);
-  gfx.setTextSize(s);
-  gfx.setTextWrap(w);
-  gfx.print(text);
+  gfx.setCursor(this->x, this->y);
+  gfx.setTextSize(this->s);
+  gfx.setTextWrap(this->w);
+  gfx.print(res);
   gfx.display();
+
+  //Serial.print("DISPLAY: ");
+  //Serial.println(v);
 }

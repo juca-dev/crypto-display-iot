@@ -4,7 +4,7 @@ const char WEB_HTML[] PROGMEM = R"=====(
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Led Controller</title>
+    <title>Crypto Controller</title>
     <style>
       * {
         margin: 0;

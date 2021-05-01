@@ -11,8 +11,10 @@ class WifiService
 private:
     byte ledPin;
     Storage storage;
-
+    String ipToString(IPAddress ip);
 public:
+    bool isAP;
+    String ip;
     WifiService(byte pin);
     void setup();
     StaticJsonDocument<256> config();
