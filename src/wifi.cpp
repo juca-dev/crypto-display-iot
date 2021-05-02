@@ -53,6 +53,11 @@ void WifiService::setup()
     Serial.println("");
     WiFi.printDiag(Serial);
 }
+
+void WifiService::reset()
+{
+  this->storage.remove("wifi.json");
+}
 StaticJsonDocument<256> WifiService::config()
 {
     String data = this->storage.get("wifi.json");

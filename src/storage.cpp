@@ -72,3 +72,16 @@ String Storage::get(String key)
 
   return buf.get();
 }
+bool Storage::remove(String key)
+{
+  String path = String("/" + key);
+  Serial.println("get " + path);
+  //check for stored credentials
+  if (!SPIFFS.exists(path))
+  {
+    return false;
+  }
+
+  SPIFFS.remove(path);
+  return true;
+}

@@ -24,6 +24,7 @@ public:
   StaticJsonDocument<256> config();
   bool load(StaticJsonDocument<256> json);
   void save();
+  void reset();
 };
 
 #endif

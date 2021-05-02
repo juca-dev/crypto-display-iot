@@ -33,6 +33,7 @@ public:
   StaticJsonDocument<256> config();
   bool load(StaticJsonDocument<256> json);
   void save();
+  void reset();
   void ntpConnect();
   void messageReceived(char *topic, byte *payload, unsigned int length);
   void pubSubErr(int8_t MQTTErr);

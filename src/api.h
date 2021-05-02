@@ -37,10 +37,13 @@ public:
     void conConfigPut();
     void conIot();
     void conIotPut();
+    void conIotDel();
     void conWifi();
     void conWifiPut();
+    void conWifiDel();
     void conDisplay();
     void conDisplayPut();
+    void conDisplayDel();
     void conReset();
 };
 

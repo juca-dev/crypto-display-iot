@@ -9,6 +9,11 @@ IoT::IoT(byte pin)
     Serial.println("IoT: ready");
 }
 
+
+void IoT::reset()
+{
+  this->storage.remove("iot.json");
+}
 StaticJsonDocument<256> IoT::config()
 {
     String data = this->storage.get("iot.json");
@@ -30,6 +35,8 @@ bool IoT::load(StaticJsonDocument<256> json)
         || !json.containsKey("certCA") 
         || !json.containsKey("certClient") 
         || !json.containsKey("certKey") 
+        || !json.containsKey("pub") 
+        || !json.containsKey("sub") 
     )
     {
         Serial.println("iot: No config");

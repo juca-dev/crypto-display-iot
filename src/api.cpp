@@ -69,12 +69,15 @@ void Api::setup()
     this->server.on("/toggle", HTTP_POST, std::bind(&Api::conToggle, this));
     this->server.on("/wifi", HTTP_POST, std::bind(&Api::conWifiPut, this));
     this->server.on("/wifi", HTTP_GET, std::bind(&Api::conWifi, this));
+    this->server.on("/wifi", HTTP_DELETE, std::bind(&Api::conWifiDel, this));
     this->server.on("/api", HTTP_POST, std::bind(&Api::conConfigPut, this));
     this->server.on("/api", HTTP_GET, std::bind(&Api::conConfig, this));
     this->server.on("/iot", HTTP_POST, std::bind(&Api::conIotPut, this));
     this->server.on("/iot", HTTP_GET, std::bind(&Api::conIot, this));
+    this->server.on("/iot", HTTP_DELETE, std::bind(&Api::conIotDel, this));
     this->server.on("/display", HTTP_POST, std::bind(&Api::conDisplayPut, this));
     this->server.on("/display", HTTP_GET, std::bind(&Api::conDisplay, this));
+    this->server.on("/display", HTTP_DELETE, std::bind(&Api::conDisplayDel, this));
 
     this->server.begin();
     
@@ -143,10 +146,20 @@ void Api::conIotPut()
     String value;
     serializeJson(json, value);
 
-    server.send(204, "");
+    if (!this->iot.load(json))
+    {
+        this->server.send(400, "application/json", ERR_400);
+        return;
+    }
 
-    this->iot.load(json);
     this->iot.save();
+    server.send(204, "");
+}
+void Api::conIotDel()
+{
+    this->iot.reset();
+    
+    server.send(200, "");
 }
 void Api::conIot()
 {
@@ -163,9 +176,19 @@ void Api::conWifiPut()
     String value;
     serializeJson(json, value);
 
+    if (!this->wifi.load(json))
+    {
+        this->server.send(400, "application/json", ERR_400);
+        return;
+    }
+    
     server.send(204, "");
-
-    this->wifi.load(json);
+}
+void Api::conWifiDel()
+{
+    this->wifi.reset();
+    
+    server.send(200, "");
 }
 void Api::conWifi()
 {
@@ -182,10 +205,20 @@ void Api::conDisplayPut()
     String value;
     serializeJson(json, value);
 
-    server.send(204, "");
-
-    this->display.load(json);
+    if (!this->display.load(json))
+    {
+        this->server.send(400, "application/json", ERR_400);
+        return;
+    }
+    
     this->display.save();
+    server.send(204, "");
+}
+void Api::conDisplayDel()
+{
+    this->display.reset();
+    
+    server.send(200, "");
 }
 void Api::conDisplay()
 {

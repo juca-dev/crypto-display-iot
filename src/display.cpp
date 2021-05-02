@@ -2,6 +2,10 @@
 
 Adafruit_SSD1306 gfx(128, 32, &Wire, 16);
 
+void Display::reset()
+{
+  this->storage.remove("display.json");
+}
 StaticJsonDocument<256> Display::config()
 {
   String data = this->storage.get("display.json");
