@@ -2,20 +2,7 @@
 
 #define SECRET
 
-const char ssid[] = "Apto 32";
-const char pass[] = "10205300";
-
-#define IOT_ID "natal2019"
-
-int8_t TIME_ZONE = 3; //BRA: 3 UTC
-//#define USE_SUMMER_TIME_DST  //uncomment to use DST
-
-const char MQTT_HOST[] = "a18w68u82gkxhf-ats.iot.us-east-1.amazonaws.com";
-
-// Obtain First CA certificate for Amazon AWS
-// https://docs.aws.amazon.com/iot/latest/developerguide/managing-device-certs.html#server-authentication
-// Copy contents from CA certificate here ▼
-static const char cacert[] PROGMEM = R"EOF(
+static const char CERT_CA[] PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
 ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
@@ -38,8 +25,7 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
 -----END CERTIFICATE-----
 )EOF";
 
-// Copy contents from XXXXXXXX-certificate.pem.crt here ▼
-static const char client_cert[] PROGMEM = R"KEY(
+static const char CERT_CLIENT[] PROGMEM = R"KEY(
 -----BEGIN CERTIFICATE-----
 MIIDWTCCAkGgAwIBAgIUVWFN0p0MqtodrStCTeia5CfTlp0wDQYJKoZIhvcNAQEL
 BQAwTTFLMEkGA1UECwxCQW1hem9uIFdlYiBTZXJ2aWNlcyBPPUFtYXpvbi5jb20g
@@ -62,8 +48,7 @@ HUqQ9lrF1tJ7eXTSHUcPJLH+xJ9FB8ycCgMfx3UBY+WywS4lH0lCR/GL9izS
 -----END CERTIFICATE-----
 )KEY";
 
-// Copy contents from  XXXXXXXX-private.pem.key here ▼
-static const char privkey[] PROGMEM = R"KEY(
+static const char CERT_KEY[] PROGMEM = R"KEY(
 -----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEA0b2B0f+0ynbi6BI9eu6mG5O3I+IIgmErJtGLfEANX2jSCACD
 PDa9Qzl4wE5MAcg87JIw2k04ESGWWwwyLcuK4Nd2+eMvdry0CkVIk61TIRH1POmx

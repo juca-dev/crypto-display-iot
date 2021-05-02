@@ -6,7 +6,7 @@ const char ERR_405[] = "{\"error\":\"api power OFF\"}";
 StaticJsonDocument<256> Api::getJson()
 {
     String data = server.arg("plain");
-    Serial.print("API: data ");
+    Serial.print("API: json ");
     Serial.println(data);
     StaticJsonDocument<256> json;
     DeserializationError err = deserializeJson(json, data);
@@ -15,54 +15,43 @@ StaticJsonDocument<256> Api::getJson()
         Serial.print("### ERR: API - ");
         Serial.println(err.c_str());
     }
+    
     return json;
 }
-StaticJsonDocument<256> Api::config()
+String Api::getBody()
 {
-    String data = this->storage.get("api.json");
-    StaticJsonDocument<256> json;
-    DeserializationError err = deserializeJson(json, data);
-    if (err)
-    {
-        Serial.print("### ERR: API - ");
-        Serial.println(err.c_str());
-    }
-    return json;
+    String data = server.arg("plain");
+    Serial.print("API: data ");
+    Serial.println(data);
+    
+    return data;
 }
 
-Api::Api(byte ledPin, byte powerPin)
+Api::Api(byte ledPin)
 {
     this->ledPin = ledPin;
-    this->powerPin = powerPin;
     Serial.println("API: ready");
 }
 
 void Api::setup()
 {
     pinMode(this->ledPin, OUTPUT);
-    pinMode(this->powerPin, INPUT);
     delay(250);
-    this->powerBkp = digitalRead(this->powerPin);
 
     this->display.setup();
-    this->display.text("Storage: loading");
-    this->storage.setup();
     this->display.text("Wifi: loading");
     this->wifi.setup();
-    
     if(this->wifi.isAP)
     {
-      this->display.text("Wifi: AP " + this->wifi.ip);
+      this->display.text("AP: " + this->wifi.ip);
     }
     else
     {
       this->display.text("Wifi: " + this->wifi.ip);
       this->display.text("IoT: loading");
+      delay(500);
       this->iot.setup();
     }
-
-    this->configBkp = this->config();
-    this->load(this->configBkp);
 
     this->server.on("/", HTTP_GET, std::bind(&Api::conWeb, this));
     this->server.on("/", HTTP_DELETE, std::bind(&Api::conReset, this));
@@ -70,11 +59,12 @@ void Api::setup()
     this->server.on("/wifi", HTTP_POST, std::bind(&Api::conWifiPut, this));
     this->server.on("/wifi", HTTP_GET, std::bind(&Api::conWifi, this));
     this->server.on("/wifi", HTTP_DELETE, std::bind(&Api::conWifiDel, this));
-    this->server.on("/api", HTTP_POST, std::bind(&Api::conConfigPut, this));
-    this->server.on("/api", HTTP_GET, std::bind(&Api::conConfig, this));
     this->server.on("/iot", HTTP_POST, std::bind(&Api::conIotPut, this));
     this->server.on("/iot", HTTP_GET, std::bind(&Api::conIot, this));
     this->server.on("/iot", HTTP_DELETE, std::bind(&Api::conIotDel, this));
+    this->server.on("/iot/cert/ca", HTTP_PUT, std::bind(&Api::conIotPutCertCA, this));
+    this->server.on("/iot/cert/client", HTTP_PUT, std::bind(&Api::conIotPutCertClient, this));
+    this->server.on("/iot/cert/key", HTTP_PUT, std::bind(&Api::conIotPutCertKey, this));
     this->server.on("/display", HTTP_POST, std::bind(&Api::conDisplayPut, this));
     this->server.on("/display", HTTP_GET, std::bind(&Api::conDisplay, this));
     this->server.on("/display", HTTP_DELETE, std::bind(&Api::conDisplayDel, this));
@@ -86,22 +76,7 @@ void Api::setup()
 void Api::loop()
 {
     this->server.handleClient();
-}
-bool Api::load(StaticJsonDocument<256> json)
-{
-    if (json.isNull())
-    {
-        Serial.println("API: No config");
-        return false;
-    }
-
-    String value;
-    serializeJson(json, value);
-
-    this->storage.put("api.json", value);
-    this->configBkp = json;
-
-    return true;
+    //this->iot.loop();
 }
 void Api::conWeb()
 {
@@ -112,39 +87,9 @@ void Api::conToggle()
     digitalWrite(this->ledPin, !digitalRead(this->ledPin));
     this->server.send(204, "");
 }
-void Api::conConfigPut()
-{
-    if (this->powerBkp)
-    {
-        this->server.send(405, "application/json", ERR_405);
-        return;
-    }
-    StaticJsonDocument<256> json = this->getJson();
-    if (!this->load(json))
-    {
-        this->server.send(400, "application/json", ERR_400);
-        return;
-    }
-
-    String value;
-    serializeJson(json, value);
-
-    this->server.send(204, "");
-}
-void Api::conConfig()
-{
-    StaticJsonDocument<256> json = this->config();
-
-    String value;
-    serializeJson(json, value);
-
-    this->server.send(json.isNull() ? 404 : 200, "application/json", value.c_str());
-}
 void Api::conIotPut()
 {
     StaticJsonDocument<256> json = this->getJson();
-    String value;
-    serializeJson(json, value);
 
     if (!this->iot.load(json))
     {
@@ -153,6 +98,31 @@ void Api::conIotPut()
     }
 
     this->iot.save();
+    
+    server.send(204, "");
+}
+void Api::conIotPutCertCA()
+{
+    String data = this->getBody();
+
+    this->iot.setCertCA(data);
+    
+    server.send(204, "");
+}
+void Api::conIotPutCertClient()
+{
+    String data = this->getBody();
+
+    this->iot.setCertClient(data);
+    
+    server.send(204, "");
+}
+void Api::conIotPutCertKey()
+{
+    String data = this->getBody();
+
+    this->iot.setCertKey(data);
+    
     server.send(204, "");
 }
 void Api::conIotDel()
@@ -172,11 +142,7 @@ void Api::conIot()
 }
 void Api::conWifiPut()
 {
-    StaticJsonDocument<256> json = this->getJson();
-    String value;
-    serializeJson(json, value);
-
-    if (!this->wifi.load(json))
+    if (!this->wifi.load(this->getJson()))
     {
         this->server.send(400, "application/json", ERR_400);
         return;
@@ -202,8 +168,6 @@ void Api::conWifi()
 void Api::conDisplayPut()
 {
     StaticJsonDocument<256> json = this->getJson();
-    String value;
-    serializeJson(json, value);
 
     if (!this->display.load(json))
     {
@@ -212,6 +176,7 @@ void Api::conDisplayPut()
     }
     
     this->display.save();
+    
     server.send(204, "");
 }
 void Api::conDisplayDel()
@@ -236,4 +201,34 @@ void Api::conReset()
     delay(500);
     Serial.println("API: Rebooting");
     ESP.restart(); //reload wifi
+}
+String Api::request(String url)
+{
+  Serial.print("url:  ");
+  Serial.println(url.c_str());
+  
+  HTTPClient http;
+  WiFiClientSecure client;
+  client.setInsecure(); //the magic line, use with caution
+  client.connect(url, 433);
+
+  http.begin(client, url);
+  int httpCode = http.GET();
+  
+  Serial.print("httpCode:  ");
+  Serial.println(httpCode);
+  
+  String payload;
+  if (httpCode < 200 || httpCode >= 300) 
+  {
+    return payload;
+  }
+
+  payload = http.getString();
+  Serial.print("payload:  ");
+  Serial.println(payload.c_str());
+
+  http.end();
+  
+  return payload;
 }

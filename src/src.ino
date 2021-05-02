@@ -1,6 +1,6 @@
 #include "api.h"
 
-Api API(LED_BUILTIN, 5);
+Api API(LED_BUILTIN);
 
 void setup()
 {

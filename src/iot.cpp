@@ -1,4 +1,5 @@
 #include "iot.h"
+#include "cert.h"
 
 WiFiClientSecure net;
 
@@ -8,11 +9,27 @@ IoT::IoT(byte pin)
     this->client.setClient(net);
     Serial.println("IoT: ready");
 }
-
-
+void IoT::setCertCA(String value)
+{
+    this->certCA = value;
+    this->storage.put("ca.pem", value);
+}
+void IoT::setCertClient(String value)
+{
+    this->certClient = value;
+    this->storage.put("client.pem", value);
+}
+void IoT::setCertKey(String value)
+{
+    this->certKey = value;
+    this->storage.put("key.pem", value);
+}
 void IoT::reset()
 {
-  this->storage.remove("iot.json");
+    this->storage.remove("iot.json");
+    this->storage.remove("ca.pem");
+    this->storage.remove("client.pem");
+    this->storage.remove("key.pem");
 }
 StaticJsonDocument<256> IoT::config()
 {
@@ -28,16 +45,7 @@ StaticJsonDocument<256> IoT::config()
 }
 bool IoT::load(StaticJsonDocument<256> json)
 {
-    if (json.isNull() 
-        || !json.containsKey("id") 
-        || !json.containsKey("port") 
-        || !json.containsKey("host") 
-        || !json.containsKey("certCA") 
-        || !json.containsKey("certClient") 
-        || !json.containsKey("certKey") 
-        || !json.containsKey("pub") 
-        || !json.containsKey("sub") 
-    )
+    if (json.isNull() || !json.containsKey("id") || !json.containsKey("port") || !json.containsKey("host") || !json.containsKey("pub") || !json.containsKey("sub"))
     {
         Serial.println("iot: No config");
         return false;
@@ -46,11 +54,13 @@ bool IoT::load(StaticJsonDocument<256> json)
     this->id = json["id"].as<String>();
     this->port = json["port"].as<uint16_t>();
     this->host = json["host"].as<String>();
-    this->certCA = json["certCA"].as<String>();
-    this->certClient = json["certClient"].as<String>();
-    this->certKey = json["certKey"].as<String>();
     this->topicPub = json["pub"].as<String>();
     this->topicSub = json["sub"].as<String>();
+
+    //    this->certCA = this->storage.get("ca.pem");
+    //    this->certClient = CERT_CLIENT; //this->storage.get("client.pem");
+    //    this->certKey = CERT_KEY; //this->storage.get("key.pem");
+
     return true;
 }
 void IoT::save()
@@ -59,11 +69,9 @@ void IoT::save()
     json["id"] = this->id;
     json["port"] = this->port;
     json["host"] = this->host;
-    json["certCA"] = this->certCA;
-    json["certClient"] = this->certClient;
-    json["certKey"] = this->certKey;
     json["pub"] = this->topicPub;
     json["sub"] = this->topicSub;
+
     String value;
     serializeJson(json, value);
     this->storage.put("iot.json", value);
@@ -144,8 +152,16 @@ void IoT::connectToMqtt(bool nonBlocking)
         if (this->client.connect(this->id.c_str()))
         {
             Serial.println("connected!");
-            if (!this->client.subscribe(this->topicSub.c_str()))
+            String topic = this->id + '/' + this->topicSub;
+            if (this->client.subscribe(topic.c_str()))
+            {
+                Serial.print("topic: ");
+                Serial.println(topic);
+            }
+            else
+            {
                 this->pubSubErr(this->client.state());
+            }
         }
         else
         {
@@ -187,15 +203,19 @@ void IoT::setup()
     StaticJsonDocument<256> config = this->config();
     if (!this->load(config))
     {
-      Serial.println("IoT: Not configured!");
-      return;
+        Serial.println("IoT: Not configured!");
+        return;
     }
-    
+
     this->ntpConnect();
 
-    BearSSL::X509List cert(this->certCA.c_str());
-    BearSSL::X509List certClient(this->certClient.c_str());
-    BearSSL::PrivateKey certKey(this->certKey.c_str());
+    //    BearSSL::X509List cert(this->certCA.c_str());
+    //    BearSSL::X509List certClient(this->certClient.c_str());
+    //    BearSSL::PrivateKey certKey(this->certKey.c_str());
+
+    BearSSL::X509List cert(CERT_CA);
+    BearSSL::X509List certClient(CERT_CLIENT);
+    BearSSL::PrivateKey certKey(CERT_KEY);
 
     net.setTrustAnchors(&cert);
     net.setClientRSACert(&certClient, &certKey);
@@ -208,7 +228,7 @@ void IoT::setup()
     //    this->client.setCallback(this->messageReceived);
     this->client.setCallback(cb);
 
-    this->connectToMqtt();
+    this->connectToMqtt(true);
 }
 void IoT::loop()
 {

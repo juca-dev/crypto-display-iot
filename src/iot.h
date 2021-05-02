@@ -27,7 +27,6 @@ private:
   time_t nowish = 1510592825;
   bool ledOn = false;
   PubSubClient client;
-
 public:
   IoT(byte pin);
   StaticJsonDocument<256> config();
@@ -41,6 +40,9 @@ public:
   void sendData();
   void setup();
   void loop();
+  void setCertCA(String value);
+  void setCertClient(String value);
+  void setCertKey(String value);
 };
 
 #endif

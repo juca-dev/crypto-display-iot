@@ -66,6 +66,8 @@ String Storage::get(String key)
     return "";
   }
   size_t size = file.size();
+  Serial.print("size ");
+  Serial.println(size);
   std::unique_ptr<char[]> buf(new char[size]);
   file.readBytes(buf.get(), size);
   file.close();
@@ -75,7 +77,7 @@ String Storage::get(String key)
 bool Storage::remove(String key)
 {
   String path = String("/" + key);
-  Serial.println("get " + path);
+  Serial.println("remove " + path);
   //check for stored credentials
   if (!SPIFFS.exists(path))
   {
