@@ -76,7 +76,10 @@ void Api::setup()
 void Api::loop()
 {
     this->server.handleClient();
-    //this->iot.loop();
+    this->iot.loop();
+    if(this->iot.content.length() > 0){
+      this->display.text(this->iot.content);
+    }
 }
 void Api::conWeb()
 {

@@ -105,11 +105,9 @@ void IoT::messageReceived(char *topic, byte *payload, unsigned int length)
     deserializeJson(doc, payload);
     if (doc.containsKey("data"))
     {
-        Serial.print(doc["data"].as<String>());
-        if (doc["data"].containsKey("code"))
-        {
-            //            code = doc["data"]["code"].as<uint8_t>();
-        }
+        String data = doc["data"].as<String>();
+        Serial.print(data);
+        this->content = data;
     }
     else
     {
@@ -187,7 +185,8 @@ void IoT::sendData()
     DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(3) + 100);
     JsonObject root = jsonBuffer.to<JsonObject>();
     JsonObject data = root.createNestedObject("data");
-    //    data["code"] = code;
+    data["ok"] = true;
+    data["id"] = this->id;
     Serial.printf("Sending  [%s]: ", this->topicPub.c_str());
     serializeJson(root, Serial);
     Serial.println();
@@ -225,7 +224,7 @@ void IoT::setup()
     auto cb = [&](char *topic, byte *payload, unsigned int length) {
         this->messageReceived(topic, payload, length);
     };
-    //    this->client.setCallback(this->messageReceived);
+
     this->client.setCallback(cb);
 
     this->connectToMqtt(true);
@@ -235,12 +234,13 @@ void IoT::loop()
     now = time(nullptr);
     if (!this->client.connected())
     {
-        this->connectToMqtt();
+        this->connectToMqtt(true);
         this->ledOn = !this->ledOn;
         digitalWrite(this->ledPin, this->ledOn ? HIGH : LOW); //show working
     }
     else
     {
+        this->content = "";
         this->client.loop();
         if (millis() - this->lastMillis > 3000) //time to wait
         {

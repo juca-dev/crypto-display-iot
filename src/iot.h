@@ -29,6 +29,7 @@ private:
   PubSubClient client;
 public:
   IoT(byte pin);
+  String content;
   StaticJsonDocument<256> config();
   bool load(StaticJsonDocument<256> json);
   void save();
