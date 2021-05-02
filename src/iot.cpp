@@ -155,7 +155,7 @@ void IoT::connectToMqtt(bool nonBlocking)
             String topic = this->id + '/' + this->topicSub;
             if (this->client.subscribe(topic.c_str()))
             {
-                Serial.print("topic: ");
+                Serial.print("subscribed: ");
                 Serial.println(topic);
             }
             else
