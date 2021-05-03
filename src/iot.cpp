@@ -11,17 +11,17 @@ IoT::IoT(byte pin)
 }
 void IoT::setCertCA(String value)
 {
-    this->certCA = value;
+//    this->certCA = value;
     this->storage.put("ca.pem", value);
 }
 void IoT::setCertClient(String value)
 {
-    this->certClient = value;
+//    this->certClient = value;
     this->storage.put("client.pem", value);
 }
 void IoT::setCertKey(String value)
 {
-    this->certKey = value;
+//    this->certKey = value;
     this->storage.put("key.pem", value);
 }
 void IoT::reset()
@@ -56,10 +56,6 @@ bool IoT::load(StaticJsonDocument<256> json)
     this->host = json["host"].as<String>();
     this->topicPub = json["pub"].as<String>();
     this->topicSub = json["sub"].as<String>();
-
-    //    this->certCA = this->storage.get("ca.pem");
-    //    this->certClient = CERT_CLIENT; //this->storage.get("client.pem");
-    //    this->certKey = CERT_KEY; //this->storage.get("key.pem");
 
     return true;
 }
@@ -107,7 +103,7 @@ void IoT::messageReceived(char *topic, byte *payload, unsigned int length)
     {
         String data = doc["data"].as<String>();
         Serial.print(data);
-        this->content = data;
+        this->message = data;
     }
     else
     {
@@ -115,7 +111,7 @@ void IoT::messageReceived(char *topic, byte *payload, unsigned int length)
         Serial.print(doc.as<String>());
     }
     Serial.println();
-    this->sendData();
+//    this->sendData();
 }
 
 void IoT::pubSubErr(int8_t MQTTErr)
@@ -208,10 +204,6 @@ void IoT::setup()
 
     this->ntpConnect();
 
-    //    BearSSL::X509List cert(this->certCA.c_str());
-    //    BearSSL::X509List certClient(this->certClient.c_str());
-    //    BearSSL::PrivateKey certKey(this->certKey.c_str());
-
     BearSSL::X509List cert(CERT_CA);
     BearSSL::X509List certClient(CERT_CLIENT);
     BearSSL::PrivateKey certKey(CERT_KEY);
@@ -240,7 +232,7 @@ void IoT::loop()
     }
     else
     {
-        this->content = "";
+        this->message = "";
         this->client.loop();
         if (millis() - this->lastMillis > 3000) //time to wait
         {

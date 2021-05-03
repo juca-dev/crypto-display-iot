@@ -39,16 +39,16 @@ void Api::setup()
     delay(250);
 
     this->display.setup();
-    this->display.text("Wifi: loading");
+    this->display.text("Wifi...");
     this->wifi.setup();
     if(this->wifi.isAP)
     {
-      this->display.text("AP: " + this->wifi.ip);
+      this->display.text("AP " + this->wifi.ip);
     }
     else
     {
-      this->display.text("Wifi: " + this->wifi.ip);
-      this->display.text("IoT: loading");
+      this->display.text("Wifi " + this->wifi.ip);
+      this->display.text("IoT...");
       delay(500);
       this->iot.setup();
     }
@@ -71,14 +71,20 @@ void Api::setup()
 
     this->server.begin();
     
-    this->display.text("API: ready");
+    this->display.clear();
+    this->display.text("API ready");
 }
+short animationIndex = 0;
 void Api::loop()
 {
     this->server.handleClient();
     this->iot.loop();
-    if(this->iot.content.length() > 0){
-      this->display.text(this->iot.content);
+    if(this->iot.message.length() > 0){
+      this->display.text(this->iot.message);
+    }
+    else
+    {
+      this->display.loop();
     }
 }
 void Api::conWeb()

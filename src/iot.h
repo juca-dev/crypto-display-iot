@@ -19,9 +19,6 @@ private:
   String host;
   String topicSub;
   String topicPub;
-  String certCA;
-  String certClient;
-  String certKey;
   unsigned long lastMillis = 0;
   time_t now;
   time_t nowish = 1510592825;
@@ -29,7 +26,7 @@ private:
   PubSubClient client;
 public:
   IoT(byte pin);
-  String content;
+  String message;
   StaticJsonDocument<256> config();
   bool load(StaticJsonDocument<256> json);
   void save();

@@ -7,6 +7,8 @@
 
 #include "storage.h"
 
+const uint16_t DISPLAY_LINES = 100;
+
 class Display
 {
 private:
@@ -14,17 +16,20 @@ private:
   uint16_t y = 0;
   uint8_t s = 1;
   bool w = true;
-  String cache;
+  unsigned short scrollY = 0;
+  unsigned long lastMillis = 0;
   Storage storage;
+  String lines[DISPLAY_LINES];
 public:
   void setup();
-  void show();
+  bool show(unsigned short index = 0);
   void clear();
   void text(String value);
   StaticJsonDocument<256> config();
   bool load(StaticJsonDocument<256> json);
   void save();
   void reset();
+  void loop();
 };
 
 #endif

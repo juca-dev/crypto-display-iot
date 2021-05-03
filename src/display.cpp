@@ -54,27 +54,61 @@ void Display::setup()
       yield();
   }
 
-  gfx.clearDisplay();
   gfx.setTextColor(WHITE);
 
+  this->clear();
   this->storage.setup();
 
-    StaticJsonDocument<256> config = this->config();
-    this->load(config);
+  StaticJsonDocument<256> config = this->config();
+  this->load(config);
 }
 void Display::clear()
 {
   gfx.clearDisplay();
-  this->cache = "";
+
+  for(unsigned short i = 0; i < DISPLAY_LINES; i++)
+  {
+    this->lines[i] = "";
+  }
+  
+  this->scrollY = 0;
 }
 void Display::text(String value)
 {
-  this->cache = value + "\n" + this->cache;
+  if(
+    !(
+      this->lines[0].length() > 3 
+      && value.length() > 3
+      && this->lines[0].substring(0, 3) == value.substring(0, 3)
+    ) // ignore same register
+  )
+  {
+    for(unsigned short i = DISPLAY_LINES - 1; i > 0; i--)
+    {
+      this->lines[i] = this->lines[i - 1];
+    } 
+  }
+  this->lines[0] = value;
+
+  this->scrollY = 0;
   this->show();
 }
-void Display::show()
+bool Display::show(unsigned short index)
 {
-  String res = this->cache; //.substring(0, 20);
+  String res = "";
+  for(unsigned short i = index; i < DISPLAY_LINES; i++)
+  {
+    if(this->lines[i] == "")
+    {
+      break;
+    }
+    res += this->lines[i] + '\n';
+  }
+  
+  if(res.length() == 0)
+  {
+    return false;
+  }
 
   gfx.clearDisplay();
   gfx.setCursor(this->x, this->y);
@@ -85,4 +119,20 @@ void Display::show()
 
   //Serial.print("DISPLAY: ");
   //Serial.println(v);
+
+  return true;
+}
+void Display::loop()
+{
+  if (millis() - this->lastMillis > 3000) //time to wait
+  {
+      if(this->show(this->scrollY++))
+      {
+        this->lastMillis = millis();
+      }
+      else
+      {
+        this->scrollY = 0;
+      }
+  }
 }
