@@ -64,30 +64,32 @@ void Display::setup()
 }
 void Display::clear()
 {
-  gfx.clearDisplay();
-
   for(unsigned short i = 0; i < DISPLAY_LINES; i++)
   {
     this->lines[i] = "";
   }
   
   this->scrollY = 0;
+  gfx.clearDisplay();
+  gfx.display();
 }
 void Display::text(String value)
 {
-  if(
-    !(
-      this->lines[0].length() > 3 
-      && value.length() > 3
-      && this->lines[0].substring(0, 3) == value.substring(0, 3)
-    ) // ignore same register
-  )
+  for(unsigned short i = 0; i < DISPLAY_LINES; i++)
   {
-    for(unsigned short i = DISPLAY_LINES - 1; i > 0; i--)
+    if(
+      this->lines[i].length() == 0
+      || (
+        this->lines[i].length() > 3 
+        && value.length() > 3
+        && this->lines[i].substring(0, 3) == value.substring(0, 3)
+      )
+    )
     {
-      this->lines[i] = this->lines[i - 1];
-    } 
-  }
+      this->lines[i] = this->lines[0];
+      break;
+    }
+  } 
   this->lines[0] = value;
 
   this->scrollY = 0;

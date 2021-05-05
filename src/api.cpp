@@ -71,8 +71,9 @@ void Api::setup()
 
     this->server.begin();
     
-    this->display.clear();
     this->display.text("API ready");
+    delay(3000);
+    this->display.clear();
 }
 short animationIndex = 0;
 void Api::loop()
