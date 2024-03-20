@@ -48,6 +48,7 @@ bool IoT::load(StaticJsonDocument<256> json)
     if (json.isNull() || !json.containsKey("id") || !json.containsKey("port") || !json.containsKey("host") || !json.containsKey("pub") || !json.containsKey("sub"))
     {
         Serial.println("iot: No config");
+        this->ready = false;
         return false;
     }
 
@@ -56,6 +57,8 @@ bool IoT::load(StaticJsonDocument<256> json)
     this->host = json["host"].as<String>();
     this->topicPub = json["pub"].as<String>();
     this->topicSub = json["sub"].as<String>();
+    
+    this->ready = true;
 
     return true;
 }
@@ -140,6 +143,12 @@ void IoT::pubSubErr(int8_t MQTTErr)
 
 void IoT::connectToMqtt(bool nonBlocking)
 {
+    if (!this->ready)
+    {
+        Serial.println("MQTT not configured!");
+        delay(5000);
+        return;
+    }
     Serial.print("MQTT connecting ");
     while (!this->client.connected())
     {
@@ -218,8 +227,8 @@ void IoT::setup()
     };
 
     this->client.setCallback(cb);
-
-    this->connectToMqtt(true);
+    // avoid loop on setup
+    // this->connectToMqtt(true);
 }
 void IoT::loop()
 {

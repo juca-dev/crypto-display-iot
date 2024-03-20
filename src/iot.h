@@ -24,6 +24,7 @@ private:
   time_t nowish = 1510592825;
   bool ledOn = false;
   PubSubClient client;
+  bool ready = false;
 public:
   IoT(byte pin);
   String message;

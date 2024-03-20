@@ -8,22 +8,22 @@ Access `Sketch > Include Library > Manage Libraries...`, looking for:
  - [Adafruit SSD1306](https://) - v2.4.4 (by *Adafruit*)
  - [PubSubClient](https://) - v2.8.0 (by *Nick O'Leary*)
 
- ## Create IOT (AWS)
- - Create a policies
-    - FullAccess
-        ```json
+## Create IOT (AWS)
+- Create a policies
+- FullAccess
+    ```json
+    {
+    "Version": "2012-10-17",
+    "Statement": [
         {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-            "Effect": "Allow",
-            "Action": "*",
-            "Resource": "*"
+        "Effect": "Allow",
+        "Action": "*",
+        "Resource": "*"
             }
         ]
         }
         ```
- - Create an device/thing in AWS IoT
+ - Create an device/thing in AWS IoT [ref](https://how2electronics.com/connecting-esp32-to-amazon-aws-iot-core-using-mqtt/)
     1. Create single thing 
     2. Set name
     3. Set shadow: unnamed shadow (classic)
