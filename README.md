@@ -17,7 +17,7 @@ Access `Sketch > Include Library > Manage Libraries...`, looking for:
     "Statement": [
         {
         "Effect": "Allow",
-        "Action": "*",
+        "Action": "iot:*",
         "Resource": "*"
             }
         ]
