@@ -205,9 +205,9 @@ void IoT::setup()
         return;
     }
 
-    char* certCA = this->storage.get2("ca.pem");
-    char* certCli = this->storage.get2("client.pem");
-    char* certPvt = this->storage.get2("key.pem");
+    char* certCA = this->storage.get("ca.pem");
+    char* certCli = this->storage.get("client.pem");
+    char* certPvt = this->storage.get("key.pem");
     if (!certCA || !certCli || !certPvt)
     {
         Serial.println("IoT: Not certificate!");

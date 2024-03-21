@@ -49,32 +49,7 @@ void Storage::put(String key, String value)
   }
   file.close();
 }
-String Storage::get(String key)
-{
-  String path = String("/" + key);
-  Serial.println("get " + path);
-  //check for stored credentials
-  if (!SPIFFS.exists(path))
-  {
-    return "";
-  }
-
-  File file = SPIFFS.open(path, "r");
-  if (!file)
-  {
-    Serial.println("### ERR: Storage - opening file for reading");
-    return "";
-  }
-  size_t size = file.size();
-  Serial.print("size ");
-  Serial.println(size);
-  std::unique_ptr<char[]> buf(new char[size]);
-  file.readBytes(buf.get(), size);
-  file.close();
-
-  return buf.get();
-}
-char* Storage::get2(String key)
+char* Storage::get(String key)
 {
   String path = String("/" + key);
   Serial.println("get2 " + path);
