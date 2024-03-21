@@ -1,5 +1,4 @@
 #include "iot.h"
-#include "cert.h"
 
 WiFiClientSecure net;
 
@@ -78,7 +77,7 @@ void IoT::save()
 void IoT::ntpConnect()
 {
     Serial.print("Setting time using SNTP");
-    int8_t TIME_ZONE = 3; //BRA: 3 UTC
+    int8_t TIME_ZONE = -3; //BRA: 3 UTC
     configTime(TIME_ZONE * 3600, 0, "pool.ntp.org", "time.nist.gov");
     this->now = time(nullptr);
     while (this->now < this->nowish)
@@ -120,25 +119,27 @@ void IoT::messageReceived(char *topic, byte *payload, unsigned int length)
 void IoT::pubSubErr(int8_t MQTTErr)
 {
     if (MQTTErr == MQTT_CONNECTION_TIMEOUT)
-        Serial.print("Connection tiemout");
+        Serial.println("Connection tiemout");
     else if (MQTTErr == MQTT_CONNECTION_LOST)
-        Serial.print("Connection lost");
+        Serial.println("Connection lost");
     else if (MQTTErr == MQTT_CONNECT_FAILED)
-        Serial.print("Connect failed");
+        Serial.println("Connect failed");
     else if (MQTTErr == MQTT_DISCONNECTED)
-        Serial.print("Disconnected");
+        Serial.println("Disconnected");
     else if (MQTTErr == MQTT_CONNECTED)
-        Serial.print("Connected");
+        Serial.println("Connected");
     else if (MQTTErr == MQTT_CONNECT_BAD_PROTOCOL)
-        Serial.print("Connect bad protocol");
+        Serial.println("Connect bad protocol");
     else if (MQTTErr == MQTT_CONNECT_BAD_CLIENT_ID)
-        Serial.print("Connect bad Client-ID");
+        Serial.println("Connect bad Client-ID");
     else if (MQTTErr == MQTT_CONNECT_UNAVAILABLE)
-        Serial.print("Connect unavailable");
+        Serial.println("Connect unavailable");
     else if (MQTTErr == MQTT_CONNECT_BAD_CREDENTIALS)
-        Serial.print("Connect bad credentials");
+        Serial.println("Connect bad credentials");
     else if (MQTTErr == MQTT_CONNECT_UNAUTHORIZED)
-        Serial.print("Connect unauthorized");
+        Serial.println("Connect unauthorized");
+    else 
+        Serial.println("MQTT Error unknow: " + String(MQTTErr));
 }
 
 void IoT::connectToMqtt(bool nonBlocking)
@@ -149,40 +150,33 @@ void IoT::connectToMqtt(bool nonBlocking)
         delay(5000);
         return;
     }
-    Serial.print("MQTT connecting ");
-    while (!this->client.connected())
+    
+    Serial.print("Connecting to AWS IOT thing name: ");Serial.println(this->id.c_str());
+    while (!this->client.connect(this->id.c_str()))
     {
-        if (this->client.connect(this->id.c_str()))
-        {
-            Serial.println("connected!");
-            String topic = this->id + '/' + this->topicSub;
-            if (this->client.subscribe(topic.c_str()))
-            {
-                Serial.print("subscribed: ");
-                Serial.println(topic);
-            }
-            else
-            {
-                this->pubSubErr(this->client.state());
-            }
-        }
-        else
-        {
-            Serial.print("failed, reason -> ");
-            this->pubSubErr(this->client.state());
-            if (!nonBlocking)
-            {
-                Serial.println(" < try again in 5 seconds");
-                delay(5000);
-            }
-            else
-            {
-                Serial.println(" <");
-            }
-        }
-        if (nonBlocking)
-            break;
+        Serial.print(".");
+        delay(1000);
     }
+    
+    if (!this->client.connected()) {
+        Serial.println("AWS IoT Timeout!");
+        return;
+    }
+
+
+    Serial.println("AWS IoT Connected!");
+
+    String topic = this->id + '/' + this->topicSub;
+    if (!this->client.subscribe(topic.c_str()))
+    {
+        Serial.print("subscribed failed");
+        Serial.println(topic);
+        this->pubSubErr(this->client.state());
+        return;
+    }
+
+    Serial.print("subscribed: ");
+    Serial.println(topic);
 }
 
 void IoT::sendData()
@@ -211,15 +205,26 @@ void IoT::setup()
         return;
     }
 
+    char* certCA = this->storage.get2("ca.pem");
+    char* certCli = this->storage.get2("client.pem");
+    char* certPvt = this->storage.get2("key.pem");
+    if (!certCA || !certCli || !certPvt)
+    {
+        Serial.println("IoT: Not certificate!");
+        return;
+    }
+
     this->ntpConnect();
 
-    BearSSL::X509List cert(CERT_CA);
-    BearSSL::X509List certClient(CERT_CLIENT);
-    BearSSL::PrivateKey certKey(CERT_KEY);
+    BearSSL::X509List cert(certCA);
+    BearSSL::X509List certClient(certCli);
+    BearSSL::PrivateKey certKey(certPvt);
 
     net.setTrustAnchors(&cert);
     net.setClientRSACert(&certClient, &certKey);
 
+    Serial.print("AWS IOT ENDPOINT: ");Serial.println(this->host.c_str());
+    Serial.print("AWS IOT PORT: ");Serial.println(this->port);
     this->client.setServer(this->host.c_str(), this->port);
 
     auto cb = [&](char *topic, byte *payload, unsigned int length) {
@@ -227,27 +232,25 @@ void IoT::setup()
     };
 
     this->client.setCallback(cb);
-    // avoid loop on setup
-    // this->connectToMqtt(true);
+
+    this->connectToMqtt(true);
 }
 void IoT::loop()
 {
-    now = time(nullptr);
     if (!this->client.connected())
     {
+        Serial.println("AWS IoT not connected!");
         this->connectToMqtt(true);
-        this->ledOn = !this->ledOn;
-        digitalWrite(this->ledPin, this->ledOn ? HIGH : LOW); //show working
+        // digitalWrite(this->ledPin, HIGH); //show working
+        return;
     }
-    else
+    
+    this->message = "";
+    this->client.loop();
+    if (millis() - this->lastMillis > 3000) //time to wait
     {
-        this->message = "";
-        this->client.loop();
-        if (millis() - this->lastMillis > 3000) //time to wait
-        {
-            this->ledOn = !this->ledOn;
-            digitalWrite(this->ledPin, this->ledOn ? HIGH : LOW); //show working
-            this->lastMillis = millis();
-        }
+        this->ledOn = !this->ledOn;
+        // digitalWrite(this->ledPin, this->ledOn ? HIGH : LOW); //show working
+        this->lastMillis = millis();
     }
 }

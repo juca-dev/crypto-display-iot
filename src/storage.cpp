@@ -74,6 +74,33 @@ String Storage::get(String key)
 
   return buf.get();
 }
+char* Storage::get2(String key)
+{
+  String path = String("/" + key);
+  Serial.println("get2 " + path);
+  
+  if (!SPIFFS.exists(path))
+  {
+    return "";
+  }
+
+  File file = SPIFFS.open(path, "r");
+  if (!file)
+  {
+    Serial.println("### ERR: Storage - opening file for reading");
+    return "";
+  }
+  
+  char* buf = (char*)malloc(file.size());
+  if (!buf) {
+    return nullptr;
+  }
+
+  file.readString().toCharArray(buf, file.size());
+  file.close();
+
+  return buf;
+}
 bool Storage::remove(String key)
 {
   String path = String("/" + key);
