@@ -1,6 +1,7 @@
 #include "display.h"
 
 Adafruit_SSD1306 gfx(128, 32, &Wire, 16);
+int x, minX;
 
 void Display::reset()
 {
@@ -20,7 +21,7 @@ StaticJsonDocument<256> Display::config()
 }
 bool Display::load(StaticJsonDocument<256> json)
 {
-  if (json.isNull() || !json.containsKey("x") || !json.containsKey("y") || !json.containsKey("s") || !json.containsKey("w"))
+  if (json.isNull() || !json.containsKey("x") || !json.containsKey("y") || !json.containsKey("s") || !json.containsKey("w")|| !json.containsKey("d"))
   {
     Serial.println("Display: No config");
     return false;
@@ -30,20 +31,24 @@ bool Display::load(StaticJsonDocument<256> json)
   this->y = json["y"].as<uint16_t>();
   this->s = json["s"].as<uint8_t>();
   this->w = json["w"].as<bool>();
+  this->speed = json["d"].as<uint16_t>();
   this->show();
 
   return true;
 }
 void Display::save()
 {
-    StaticJsonDocument<256> json;
-    json["x"] = this->x;
-    json["y"] = this->y;
-    json["s"] = this->s;
-    json["w"] = this->w;
-    String value;
-    serializeJson(json, value);
-    this->storage.put("display.json", value);
+  StaticJsonDocument<256> json;
+  json["x"] = this->x;
+  json["y"] = this->y;
+  json["s"] = this->s;
+  json["w"] = this->w;
+  json["d"] = this->speed;
+  String value;
+  serializeJson(json, value);
+  this->storage.put("display.json", value);
+
+  this->show();
 }
 void Display::setup()
 {
@@ -92,25 +97,38 @@ void Display::text(String value)
   } 
   this->lines[0] = value;
 
-  this->scrollY = 0;
   this->show();
 }
-bool Display::show(unsigned short index)
+String Display::getText()
 {
   String res = "";
-  for(unsigned short i = index; i < DISPLAY_LINES; i++)
+  for(unsigned short i = 0; i < DISPLAY_LINES; i++)
   {
     if(this->lines[i] == "")
     {
       break;
     }
-    res += this->lines[i] + '\n';
+    if(i > 0){
+      res += " | "; // separator
+    }
+    res += this->lines[i];
   }
+
+  //Serial.print("DISPLAY: ");
+  //Serial.println(res);
+
+  return res;
+}
+bool Display::show()
+{
+  String res = this->getText();
   
   if(res.length() == 0)
   {
     return false;
   }
+  x = gfx.width();
+  minX = (-1 * (this->s * CHAR_SIZE)) * res.length(); 
 
   gfx.clearDisplay();
   gfx.setCursor(this->x, this->y);
@@ -119,22 +137,20 @@ bool Display::show(unsigned short index)
   gfx.print(res);
   gfx.display();
 
-  //Serial.print("DISPLAY: ");
-  //Serial.println(v);
-
   return true;
 }
 void Display::loop()
 {
-  if (millis() - this->lastMillis > 3000) //time to wait
+  if (millis() - this->lastMillis > this->speed) //time to wait
   {
-      if(this->show(this->scrollY++))
-      {
-        this->lastMillis = millis();
-      }
-      else
-      {
-        this->scrollY = 0;
-      }
+      this->lastMillis = millis();
+
+      gfx.clearDisplay();
+      gfx.setCursor(x, this->y);
+      gfx.print(this->getText());
+      gfx.display();
+
+      x -= CHAR_SIZE;
+      if(x < minX) x= gfx.width();
   }
 }

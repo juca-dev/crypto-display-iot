@@ -81,7 +81,12 @@ void Api::loop()
     this->server.handleClient();
     this->iot.loop();
     if(this->iot.message.length() > 0){
-      this->display.text(this->iot.message);
+        if(this->iot.message == "CLEAR") {
+            this->display.clear();      
+        }
+        else {
+            this->display.text(this->iot.message);
+        }
     }
     else
     {
