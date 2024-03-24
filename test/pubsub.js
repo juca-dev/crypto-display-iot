@@ -2,7 +2,6 @@ const {
   IoTDataPlaneClient,
   PublishCommand,
 } = require("@aws-sdk/client-iot-data-plane");
-const { resolve } = require("styled-jsx/css");
 
 const {
   AWS_REGION,
@@ -35,10 +34,11 @@ async function publish(topic, data) {
   };
   const cmd = new PublishCommand(params);
   try {
-    const data = await client.send(cmd);
-    console.log("sent", data);
+    const res = await client.send(cmd);
+    console.log("sent", res);
   } catch (err) {
     console.log("error", err);
+    throw err;
   }
 }
 
@@ -66,7 +66,7 @@ async function main(symbol = "BTC") {
       await new Promise((resolve) => setTimeout(resolve, 30000));
     } catch (err) {
       console.error(err);
-      publish(AWS_IOT_TOPIC, `ERR ${time}`);
+      publish(AWS_IOT_TOPIC, `ERR ${time}: ${err?.message}`);
     }
   }
 }
