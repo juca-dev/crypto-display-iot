@@ -7,11 +7,13 @@
 
 #include "storage.h"
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define SCREEN_COLOR SSD1306_WHITE
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define OLED_WIDTH 128 // OLED display width, in pixels
+#define OLED_HEIGHT 32 // OLED display height, in pixels
+// #define OLED_HEIGHT 64 // OLED display height, in pixels
+#define OLED_COLOR SSD1306_WHITE
+#define OLED_RESET 16 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define OLED_ADDRESS 0x3c // onboard
+// #define OLED_ADDRESS 0x3C // external
 
 const uint16_t DISPLAY_LINES = 10;
 const uint16_t CHAR_SIZE = 6;

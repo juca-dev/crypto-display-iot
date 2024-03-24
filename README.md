@@ -34,3 +34,8 @@ Access `Sketch > Include Library > Manage Libraries...`, looking for:
         - Public key (pub.key)
         - Private key (pvt.key)
         - CA certificate: RSA 2048 bit key: Amazon Root CA 1 (ca.key)
+
+## Display OLED
+check display configuration
+- External (DIYmall OLED module)
+- Onboard (Heltec Wifi Kit)

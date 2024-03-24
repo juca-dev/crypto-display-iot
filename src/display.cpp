@@ -1,7 +1,7 @@
 #include "display.h"
 
-// Adafruit_SSD1306 gfx(128, 32, &Wire, 16); // onboard display
-Adafruit_SSD1306 gfx(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // external display
+Adafruit_SSD1306 gfx(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET); // onboard display
+// Adafruit_SSD1306 gfx(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET); // external display
 int x, minX;
 
 void Display::reset()
@@ -35,7 +35,7 @@ bool Display::load(StaticJsonDocument<256> json)
   this->speed = json["d"].as<uint16_t>();
 
   gfx.clearDisplay();
-  gfx.drawPixel(this->x, this->y, SCREEN_COLOR);
+  gfx.drawPixel(this->x, this->y, OLED_COLOR);
   gfx.setCursor(this->x, this->y);
   gfx.setTextSize(this->s);
   gfx.setTextWrap(this->w);
@@ -61,7 +61,7 @@ void Display::save()
 }
 void Display::setup()
 {
-  if (!gfx.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
+  if (!gfx.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS))
   {
     Serial.println("Display not allocated - check connections");
     for (;;)
@@ -69,7 +69,7 @@ void Display::setup()
   }
   // the library initializes this with an Adafruit splash screen.
   gfx.display();
-  gfx.setTextColor(SCREEN_COLOR);
+  gfx.setTextColor(OLED_COLOR);
   delay(2000); // Pause for 2 seconds
 
   this->clear();
