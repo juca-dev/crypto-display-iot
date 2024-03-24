@@ -25,32 +25,38 @@ async function publish(topic, data) {
   return res;
 }
 
-export const handler = async (event) => {
+async function getPrice(symbol, limit = 1) {
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=${limit}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  console.log("json", json);
+  const [, , , , closed] = json[0];
+
+  const value = Number(closed);
+  const isK = value > 1000;
+
+  const price = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(isK ? value / 1000 : value);
+
+  const display = `${symbol} ${price}${isK ? "k" : ""}`;
+  return display;
+}
+
+export const handler = async (ev) => {
+  const symbols = ev.symbols ?? ["BTC"];
   const time = new Date().toLocaleTimeString("pt-BR", {
     timeZone: "America/Sao_Paulo",
   });
-  const symbol = "BTC";
-  const limit = 1;
 
   try {
     // const res = await publish(AWS_IOT_TOPIC, "CLEAR");
+    const fns = symbols.map((e) => getPrice(e.toUpperCase()));
 
-    const res = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1m&limit=${limit}`
-    );
-    const json = await res.json();
-    console.log("json", json);
-    const [, , , , closed] = json[0];
+    const res = await Promise.all(fns);
+    const display = `### ${time} ${res.join(" | ")}`;
 
-    const value = Number(closed);
-    const isK = value > 1000;
-
-    const price = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(isK ? value / 1000 : value);
-
-    const display = `${symbol} ${price}${isK ? "k" : ""} ${time}`;
     await publish(AWS_IOT_TOPIC, display);
 
     return {
