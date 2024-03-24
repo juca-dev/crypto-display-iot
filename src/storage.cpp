@@ -52,7 +52,7 @@ void Storage::put(String key, String value)
 char* Storage::get(String key)
 {
   String path = String("/" + key);
-  Serial.println("get2 " + path);
+  Serial.println("get " + path);
   
   if (!SPIFFS.exists(path))
   {

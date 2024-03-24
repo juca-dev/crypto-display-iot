@@ -1,6 +1,7 @@
 #include "display.h"
 
-Adafruit_SSD1306 gfx(128, 32, &Wire, 16);
+// Adafruit_SSD1306 gfx(128, 32, &Wire, 16); // onboard display
+Adafruit_SSD1306 gfx(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // external display
 int x, minX;
 
 void Display::reset()
@@ -32,7 +33,15 @@ bool Display::load(StaticJsonDocument<256> json)
   this->s = json["s"].as<uint8_t>();
   this->w = json["w"].as<bool>();
   this->speed = json["d"].as<uint16_t>();
-  this->show();
+
+  gfx.clearDisplay();
+  gfx.drawPixel(this->x, this->y, SCREEN_COLOR);
+  gfx.setCursor(this->x, this->y);
+  gfx.setTextSize(this->s);
+  gfx.setTextWrap(this->w);
+  gfx.display();
+  Serial.println("Display: configurated");
+  delay(1000);
 
   return true;
 }
@@ -52,14 +61,16 @@ void Display::save()
 }
 void Display::setup()
 {
-  if (!gfx.begin(SSD1306_SWITCHCAPVCC, 0x3c))
+  if (!gfx.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
   {
     Serial.println("Display not allocated - check connections");
     for (;;)
       yield();
   }
-
-  gfx.setTextColor(WHITE);
+  // the library initializes this with an Adafruit splash screen.
+  gfx.display();
+  gfx.setTextColor(SCREEN_COLOR);
+  delay(2000); // Pause for 2 seconds
 
   this->clear();
   this->storage.setup();
@@ -74,7 +85,6 @@ void Display::clear()
     this->lines[i] = "";
   }
   
-  this->scrollY = 0;
   gfx.clearDisplay();
   gfx.display();
 }
@@ -114,9 +124,6 @@ String Display::getText()
     res += this->lines[i];
   }
 
-  //Serial.print("DISPLAY: ");
-  //Serial.println(res);
-
   return res;
 }
 bool Display::show()
@@ -127,15 +134,18 @@ bool Display::show()
   {
     return false;
   }
+
   x = gfx.width();
   minX = (-1 * (this->s * CHAR_SIZE)) * res.length(); 
 
   gfx.clearDisplay();
   gfx.setCursor(this->x, this->y);
-  gfx.setTextSize(this->s);
-  gfx.setTextWrap(this->w);
   gfx.print(res);
   gfx.display();
+
+  Serial.print("PRINT: ");
+  Serial.println(res);
+  delay(500);
 
   return true;
 }
@@ -143,14 +153,14 @@ void Display::loop()
 {
   if (millis() - this->lastMillis > this->speed) //time to wait
   {
-      this->lastMillis = millis();
+    this->lastMillis = millis();
 
-      gfx.clearDisplay();
-      gfx.setCursor(x, this->y);
-      gfx.print(this->getText());
-      gfx.display();
+    gfx.clearDisplay();
+    gfx.setCursor(x, this->y);
+    gfx.print(this->getText());
+    gfx.display();
 
-      x -= CHAR_SIZE;
-      if(x < minX) x= gfx.width();
+    x -= CHAR_SIZE;
+    if(x < minX) x = gfx.width();
   }
 }
