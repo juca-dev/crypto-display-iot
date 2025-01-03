@@ -21,8 +21,8 @@ Access `Sketch > Include Library > Manage Libraries...`, looking for:
         "Resource": "*"
             }
         ]
-        }
-        ```
+    }
+    ```
  - Create an device/thing in AWS IoT [ref](https://how2electronics.com/connecting-esp32-to-amazon-aws-iot-core-using-mqtt/)
     1. Create single thing 
     2. Set name
