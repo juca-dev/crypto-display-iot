@@ -39,3 +39,6 @@ Access `Sketch > Include Library > Manage Libraries...`, looking for:
 check display configuration
 - External (DIYmall OLED module)
 - Onboard (Heltec Wifi Kit)
+
+## AWS
+The schedules are in `Amazon EventBridge > Schedules`, preferente on `eu-north-1` (Stockholm) because licence to authorize crypto
